@@ -1,0 +1,652 @@
+<Window x:Class="WireGuardGen.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="WireGuard Configuration Generator"
+        MinWidth="860" MinHeight="600"
+        Width="1060" Height="800"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgDeepBrush}"
+        Foreground="{StaticResource TextPrimaryBrush}"
+        FontFamily="Segoe UI"
+        Loaded="Window_Loaded"
+        Icon="pack://application:,,,/wg_icon.ico">
+
+    <DockPanel>
+
+        <!-- ═══════════════════════ HEADER ═══════════════════════ -->
+        <Border DockPanel.Dock="Top"
+                Height="64"
+                Background="{StaticResource BgCardBrush}"
+                BorderBrush="{StaticResource BorderBrush_}"
+                BorderThickness="0,0,0,1">
+            <Grid Margin="24,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="36" Height="36" CornerRadius="8"
+                            Background="{StaticResource AccentBrush}" Margin="0,0,12,0">
+                        <TextBlock Text="⬡" FontSize="20" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" Foreground="#0D1117"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="WireGuard Configuration Generator"
+                                   FontSize="16" FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="MikroTik RouterOS · Peer Configuration Tool"
+                                   FontSize="11" Foreground="{StaticResource TextSecBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+                <Border Grid.Column="2" VerticalAlignment="Center"
+                        Background="#1C2D45" CornerRadius="6" Padding="10,4">
+                    <TextBlock Text="V1.0_HU" FontSize="11" FontWeight="Bold"
+                               Foreground="{StaticResource AccentBrush}"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════ STATUS BAR ═══════════════════════ -->
+        <Border DockPanel.Dock="Bottom"
+                Height="32"
+                Background="{StaticResource BgCardBrush}"
+                BorderBrush="{StaticResource BorderBrush_}"
+                BorderThickness="0,1,0,0"
+                Padding="24,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="StatusText" Grid.Column="0"
+                           Text="sourced by https://github.com/Robit-AT1"
+                           Foreground="{StaticResource TextSecBrush}" FontSize="11"
+                           VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1"
+                           Text="Wireguard configuration · MikroTik RouterOS · QR export"
+                           Foreground="{StaticResource TextMutedBrush}" FontSize="11"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════ TAB SÁV + TARTALOM ═══════════════════════ -->
+        <!-- Tab fejléc sáv – kézzel rajzolt, NEM TabControl template -->
+        <Border DockPanel.Dock="Top"
+                Background="{StaticResource BgCardBrush}"
+                BorderBrush="{StaticResource BorderBrush_}"
+                BorderThickness="0,0,0,1"
+                Height="46">
+            <StackPanel Orientation="Horizontal" Margin="12,0" VerticalAlignment="Stretch">
+                <RadioButton x:Name="RbTab1" Content="✦  Új konfiguráció generálása"
+                             Style="{StaticResource FlatTabBtn}"
+                             IsChecked="True"
+                             Checked="TabBtn_Checked"/>
+                <RadioButton x:Name="RbTab2" Content="🔑  Kliens konfiguráció generálása"
+                             Style="{StaticResource FlatTabBtn}"
+                             Checked="TabBtn_Checked"/>
+                <RadioButton x:Name="RbTab3" Content="📄  Eredmény"
+                             Style="{StaticResource FlatTabBtn}"
+                             Checked="TabBtn_Checked"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Tartalom – minden panel ugyanott van, láthatóságukat váltjuk -->
+        <Grid Background="{StaticResource BgDeepBrush}">
+
+            <!-- ══════════════ PANEL 1: TELJES GENERÁLÁS ══════════════ -->
+            <ScrollViewer x:Name="Panel1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          PanningMode="VerticalOnly">
+                <Grid Margin="28,20,28,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- BAL -->
+                    <StackPanel Grid.Column="0">
+
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeader}" Text="📁  Projekt"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FieldLabel}" Text="Projekt neve"/>
+                                            <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                        </StackPanel>
+                                        <TextBox x:Name="TxtProjectName" Style="{StaticResource DarkInput}"
+                                                 Tag="pl. CegVPN_2024"
+                                                 GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                                 Foreground="{StaticResource TextMutedBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Mentési mappa"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="TxtOutputPath1" Grid.Column="0"
+                                                     Style="{StaticResource DarkInput}" IsReadOnly="True"
+                                                     Tag="Válasszon mappát…"/>
+                                            <Button Grid.Column="2" Content="📂"
+                                                    Style="{StaticResource BtnSecondary}"
+                                                    Padding="11,8" Click="BrowseOutput1_Click"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeader}" Text="🌐  Hálózat"/>
+                                <TextBlock FontSize="11" Foreground="{StaticResource TextSecBrush}" Margin="0,0,0,8"
+                                           TextWrapping="Wrap"
+                                           Text="Az IP tartomány első három oktetjét add meg. Pl.: 10.0.0  →  szerver: 10.0.0.1, kliensek: 10.0.0.2, .3 …"/>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FieldLabel}" Text="Hálózat alap (3 oktet)"/>
+                                            <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                        </StackPanel>
+                                        <TextBox x:Name="TxtNetworkBase" Style="{StaticResource DarkInput}"
+                                                 Tag="10.0.0"
+                                                 GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                                 Foreground="{StaticResource TextMutedBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Szerver oktet"/>
+                                        <TextBox x:Name="TxtServerIpOctet" Style="{StaticResource DarkInput}" Text="1"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="4">
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Maszk"/>
+                                        <TextBox x:Name="TxtSubnetMask" Style="{StaticResource DarkInput}" Text="24"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FieldLabel}" Text="WireGuard port"/>
+                                            <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                        </StackPanel>
+                                        <TextBox x:Name="TxtPort1" Style="{StaticResource DarkInput}" Text="51820"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Kliens IP kezdő oktet"/>
+                                        <TextBox x:Name="TxtStartIp" Style="{StaticResource DarkInput}" Text="2"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeader}" Text="🖥️  Szerver"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource FieldLabel}" Text="Endpoint"/>
+                                    <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                </StackPanel>
+                                <TextBox x:Name="TxtEndpoint1" Style="{StaticResource DarkInput}" Margin="0,0,0,12"
+                                         Tag="pl.: vpn.ceged.hu:51820 vagy 203.0.113.1:51820"
+                                         GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                         Foreground="{StaticResource TextMutedBrush}"/>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FieldLabel}" Text="Interface neve"/>
+                                            <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                        </StackPanel>
+                                        <TextBox x:Name="TxtIfName1" Style="{StaticResource DarkInput}" Text="wg"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="DNS (opcionális)"/>
+                                        <TextBox x:Name="TxtDns1" Style="{StaticResource DarkInput}"
+                                                 Tag="pl.: 8.8.8.8, 1.1.1.1"
+                                                 GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                                 Foreground="{StaticResource TextMutedBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="PostUp (opcionális)"/>
+                                <TextBox x:Name="TxtPostUp" Style="{StaticResource DarkInput}" Margin="0,0,0,12"
+                                         Tag="pl.: iptables -A FORWARD -i %i -j ACCEPT"
+                                         GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                         Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="PostDown (opcionális)"/>
+                                <TextBox x:Name="TxtPostDown" Style="{StaticResource DarkInput}"
+                                         Tag="pl.: iptables -D FORWARD -i %i -j ACCEPT"
+                                         GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                         Foreground="{StaticResource TextMutedBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+
+                    <!-- JOBB -->
+                    <StackPanel Grid.Column="2">
+
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeader}" Text="👥  Kliensek"/>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FieldLabel}" Text="Kliensek száma"/>
+                                            <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                        </StackPanel>
+                                        <TextBox x:Name="TxtClientCount1" Style="{StaticResource DarkInput}" Text="5"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="PersistentKeepalive (mp)"/>
+                                        <TextBox x:Name="TxtKeepalive1" Style="{StaticResource DarkInput}" Text="15"/>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="AllowedIPs"/>
+                                <TextBox x:Name="TxtAllowedIPs1" Style="{StaticResource DarkInput}" Margin="0,0,0,12"
+                                         Text="0.0.0.0/0"/>
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="Kliens DNS (opcionális)"/>
+                                <TextBox x:Name="TxtClientDns1" Style="{StaticResource DarkInput}"
+                                         Tag="pl.: 8.8.8.8, 1.1.1.1"
+                                         GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                         Foreground="{StaticResource TextMutedBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeader}" Text="⚙️  Opciók"/>
+                                <CheckBox x:Name="ChkQr1" Style="{StaticResource DarkCheck}"
+                                          Content="QR-kód generálása minden kliens mellé (.png)"
+                                          IsChecked="True"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="{StaticResource BgCardBrush}"
+                                BorderBrush="{StaticResource BorderBrush_}"
+                                BorderThickness="1" CornerRadius="10" Padding="18,14" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="Generált kimenetek" FontWeight="SemiBold" FontSize="13"
+                                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="📄" FontSize="12" Margin="0,2,0,6"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" FontSize="12" Margin="0,0,0,6"
+                                               Foreground="{StaticResource TextSecBrush}" TextWrapping="Wrap"
+                                               Text="szerver/wg-server.conf"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="📄" FontSize="12" Margin="0,2,0,6"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" FontSize="12" Margin="0,0,0,6"
+                                               Foreground="{StaticResource TextSecBrush}" TextWrapping="Wrap"
+                                               Text="szerver/mikrotik_parancsok.txt"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="📄" FontSize="12" Margin="0,2,0,6"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="2" FontSize="12" Margin="0,0,0,6"
+                                               Foreground="{StaticResource TextSecBrush}" TextWrapping="Wrap"
+                                               Text="kliensek/WG_001.conf … WG_N.conf"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="🖼️" FontSize="12" Margin="0,2,0,0"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="2" FontSize="12"
+                                               Foreground="{StaticResource TextSecBrush}" TextWrapping="Wrap"
+                                               Text="kliensek/WG_001_qr.png … (ha engedélyezve)"/>
+                                </Grid>
+                                <Border Background="{StaticResource BgInputBrush}" CornerRadius="6"
+                                        Padding="10,8" Margin="0,12,0,0">
+                                    <TextBlock FontSize="11" Foreground="{StaticResource TextMutedBrush}"
+                                               TextWrapping="Wrap"
+                                               Text="Csillaggal (*) jelölt mezők kitöltése kötelező."/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Button x:Name="BtnGenerate1" Style="{StaticResource BtnGenerate}"
+                                Click="BtnGenerate1_Click"
+                                HorizontalAlignment="Stretch" Height="46">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚡" FontSize="15" Margin="0,0,9,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="GENERÁLÁS" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+
+            <!-- ══════════════ PANEL 2: KLIENS GENERÁLÁS ══════════════ -->
+            <ScrollViewer x:Name="Panel2" Visibility="Collapsed"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          PanningMode="VerticalOnly">
+                <Grid Margin="28,20,28,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- BAL -->
+                    <StackPanel Grid.Column="0">
+
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeader}" Text="📁  Projekt"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource FieldLabel}" Text="Projekt neve"/>
+                                    <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                </StackPanel>
+                                <TextBox x:Name="TxtProjectName2" Style="{StaticResource DarkInput}" Margin="0,0,0,12"
+                                         Tag="pl. CegVPN_UjKliensek"
+                                         GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                         Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="Mentési mappa"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="TxtOutputPath2" Grid.Column="0"
+                                             Style="{StaticResource DarkInput}" IsReadOnly="True"
+                                             Tag="Válasszon mappát…"/>
+                                    <Button Grid.Column="2" Content="📂"
+                                            Style="{StaticResource BtnSecondary}"
+                                            Padding="11,8" Click="BrowseOutput2_Click"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeader}" Text="🔐  Meglévő szerver"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource FieldLabel}" Text="Szerver publikus kulcs"/>
+                                    <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                </StackPanel>
+                                <TextBox x:Name="TxtServerPubKey" Style="{StaticResource DarkInput}" Margin="0,0,0,12"
+                                         Tag="pl.: szwePzJK.................................."
+                                         GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                         Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                                <TextBlock Style="{StaticResource FieldLabel}"
+                                           Text="Szerver privát kulcs (opcionális — szerver .conf-hoz)"/>
+                                <TextBox x:Name="TxtServerPrivKey" Style="{StaticResource DarkInput}" Margin="0,0,0,12"
+                                         Tag="Ha megadod, elkészül a wg-server.conf is"
+                                         GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                         Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource FieldLabel}" Text="Endpoint"/>
+                                    <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                </StackPanel>
+                                <TextBox x:Name="TxtEndpoint2" Style="{StaticResource DarkInput}" Margin="0,0,0,12"
+                                         Tag="pl.: vpn.ceged.hu:51820"
+                                         GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                         Foreground="{StaticResource TextMutedBrush}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FieldLabel}" Text="WireGuard port"/>
+                                            <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                        </StackPanel>
+                                        <TextBox x:Name="TxtPort2" Style="{StaticResource DarkInput}" Text="51820"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FieldLabel}" Text="Interface neve"/>
+                                            <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                        </StackPanel>
+                                        <TextBox x:Name="TxtIfName2" Style="{StaticResource DarkInput}" Text="wg"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeader}" Text="🌐  Hálózat"/>
+                                <TextBlock FontSize="11" Foreground="{StaticResource TextSecBrush}"
+                                           Margin="0,0,0,10" TextWrapping="Wrap"
+                                           Text="Pl.: 10.101.0  →  szerver: 10.101.0.1, kliensek: 10.101.0.2 …"/>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FieldLabel}" Text="Hálózat alap"/>
+                                            <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                        </StackPanel>
+                                        <TextBox x:Name="TxtNetBase2" Style="{StaticResource DarkInput}"
+                                                 Tag="pl.: 10.101.0"
+                                                 GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                                 Foreground="{StaticResource TextMutedBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Maszk"/>
+                                        <TextBox x:Name="TxtMask2" Style="{StaticResource DarkInput}" Text="24"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="4">
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Szerver oktet"/>
+                                        <TextBox x:Name="TxtSrvOctet2" Style="{StaticResource DarkInput}" Text="1"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Kliens IP kezdő oktet"/>
+                                        <TextBox x:Name="TxtStartIp2" Style="{StaticResource DarkInput}" Text="2"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Fájlnév sorszám kezdete"/>
+                                        <TextBox x:Name="TxtIndexOffset" Style="{StaticResource DarkInput}" Text="1"
+                                                 ToolTip="1 = WG_001.conf; 51 = WG_051-től folytatja"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+
+                    <!-- JOBB -->
+                    <StackPanel Grid.Column="2">
+
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeader}" Text="👥  Kliensek"/>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FieldLabel}" Text="Kliensek száma"/>
+                                            <TextBlock Style="{StaticResource RequiredStar}" Text=" *"/>
+                                        </StackPanel>
+                                        <TextBox x:Name="TxtClientCount2" Style="{StaticResource DarkInput}" Text="5"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="PersistentKeepalive (mp)"/>
+                                        <TextBox x:Name="TxtKeepalive2" Style="{StaticResource DarkInput}" Text="15"/>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="AllowedIPs"/>
+                                <TextBox x:Name="TxtAllowedIPs2" Style="{StaticResource DarkInput}" Margin="0,0,0,12"
+                                         Text="0.0.0.0/0"/>
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="Kliens DNS (opcionális)"/>
+                                <TextBox x:Name="TxtClientDns2" Style="{StaticResource DarkInput}"
+                                         Tag="pl.: 8.8.8.8, 1.1.1.1"
+                                         GotFocus="Placeholder_GotFocus" LostFocus="Placeholder_LostFocus"
+                                         Foreground="{StaticResource TextMutedBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeader}" Text="⚙️  Opciók"/>
+                                <CheckBox x:Name="ChkQr2" Style="{StaticResource DarkCheck}"
+                                          Content="QR-kód generálása minden kliens mellé (.png)"
+                                          IsChecked="True"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="{StaticResource BgCardBrush}"
+                                BorderBrush="{StaticResource BorderBrush_}"
+                                BorderThickness="1" CornerRadius="10" Padding="18,14" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="Generált kimenetek" FontWeight="SemiBold" FontSize="13"
+                                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="📄" FontSize="12" Margin="0,2,0,6"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" FontSize="12" Margin="0,0,0,6"
+                                               Foreground="{StaticResource TextSecBrush}" TextWrapping="Wrap"
+                                               Text="szerver/mikrotik_parancsok.txt"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="📄" FontSize="12" Margin="0,2,0,6"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" FontSize="12" Margin="0,0,0,6"
+                                               Foreground="{StaticResource TextSecBrush}" TextWrapping="Wrap"
+                                               Text="szerver/wg-server.conf (ha privát kulcs megadva)"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="📄" FontSize="12" Margin="0,2,0,6"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="2" FontSize="12" Margin="0,0,0,6"
+                                               Foreground="{StaticResource TextSecBrush}" TextWrapping="Wrap"
+                                               Text="kliensek/WG_001.conf … WG_N.conf"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="🖼️" FontSize="12" Margin="0,2,0,0"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="2" FontSize="12"
+                                               Foreground="{StaticResource TextSecBrush}" TextWrapping="Wrap"
+                                               Text="kliensek/WG_001_qr.png … (ha engedélyezve)"/>
+                                </Grid>
+                                <Border Background="{StaticResource BgInputBrush}" CornerRadius="6"
+                                        Padding="10,8" Margin="0,12,0,0">
+                                    <TextBlock FontSize="11" Foreground="{StaticResource TextMutedBrush}"
+                                               TextWrapping="Wrap"
+                                               Text="A szerver publikus kulcsa kötelező (*). Privát kulcs nélkül szerver .conf nem készül."/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Button x:Name="BtnGenerate2" Style="{StaticResource BtnPrimary}"
+                                Click="BtnGenerate2_Click"
+                                HorizontalAlignment="Stretch" Height="46">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚡" FontSize="15" Margin="0,0,9,0" VerticalAlignment="Center"
+                                           Foreground="White"/>
+                                <TextBlock Text="GENERÁLÁS" FontSize="14" FontWeight="Bold"
+                                           VerticalAlignment="Center" Foreground="White"/>
+                            </StackPanel>
+                        </Button>
+
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+
+            <!-- ══════════════ PANEL 3: EREDMÉNY ══════════════ -->
+            <DockPanel x:Name="Panel3" Visibility="Collapsed"
+                       Background="{StaticResource BgDeepBrush}"
+                       Margin="28,20,28,20">
+
+                <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Margin="0,0,0,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock x:Name="TxtResultTitle" Text="Generálás eredménye"
+                                       FontSize="15" FontWeight="Bold"
+                                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock x:Name="TxtResultPath" Text="Mappa: —"
+                                       FontSize="12" Foreground="{StaticResource TextSecBrush}"
+                                       Margin="0,4,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" x:Name="BtnOpenFolder"
+                                Content="📂  Mappa megnyitása"
+                                Style="{StaticResource BtnSecondary}"
+                                Click="BtnOpenFolder_Click" IsEnabled="False"
+                                Padding="14,8" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                            HorizontalAlignment="Right" Margin="0,14,0,0">
+                    <Button Content="📋  Log másolása" Style="{StaticResource BtnSecondary}"
+                            Click="BtnCopyLog_Click" Padding="14,8" Margin="0,0,10,0"/>
+                    <Button Content="🗑  Törlés" Style="{StaticResource BtnSecondary}"
+                            Click="BtnClearLog_Click" Padding="14,8"/>
+                </StackPanel>
+
+                <Border Style="{StaticResource Card}">
+                    <TextBox x:Name="TxtLog"
+                             BorderThickness="0" Background="Transparent"
+                             IsReadOnly="True" TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             FontFamily="Consolas" FontSize="12"
+                             Foreground="{StaticResource TextSecBrush}"
+                             Text="Még nem volt konfiguráció generálás! Töltse ki a mezőket és kattintson a Generálás gombra!"/>
+                </Border>
+
+            </DockPanel>
+
+        </Grid>
+
+    </DockPanel>
+</Window>
