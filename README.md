@@ -3,6 +3,10 @@ Az alkalmazás képes teljesen új wireguard privát és publikus kulcsokat gene
 
 ---------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------
+Letöltés:
+https://github.com/Robit-AT1/Wireguard_configuration_generator_app_HU/releases/tag/v1.0
+Ha nem bíznál az exe fájlokban akkor magad is futtathatod a nyilt forráskód alapján!
+
 Publish:
 
 A programot használat előtt javasolt .exe fájlá alakítani ehez szükséges, a gépre telepített dotnet platform majd az adott mappában egy command promptot nyitva az alábbi parancsal lehet publish-olni:
